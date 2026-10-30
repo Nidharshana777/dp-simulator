@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dynamic Programming Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0b;--card:#141518;--ink:#eef4fa;--mut:#9db4c8;--line:#2a2e35;--acc:#0b7fc0;--cur:#3fb0e8;--curt:#0a0a0b;--on:#0a0a0b;--dep:#17364d;--path:#8fd0f3;--kk:#1b1d22;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0a0b;--card:#141518;--ink:#eef4fa;--mut:#9db4c8;--line:#2a2e35;--acc:#0b7fc0;--cur:#3fb0e8;--curt:#0a0a0b;--on:#0a0a0b;--dep:#17364d;--path:#8fd0f3;--kk:#1b1d22;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a0a0b;--card:#141518;--ink:#eef4fa;--mut:#9db4c8;--line:#2a2e35;--acc:#0b7fc0;--cur:#3fb0e8;--curt:#0a0a0b;--on:#0a0a0b;--dep:#17364d;--path:#8fd0f3;--kk:#1b1d22;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:1060px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:clamp(28px,5vw,44px);font-weight:800;margin:6px 0 4px;letter-spacing:-.02em}
+.sub{color:var(--mut);margin:0 0 18px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.tab{border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:999px;font:600 14px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.tab[aria-selected=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+.tab:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--cur);outline-offset:2px}
+.panel{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:16px;margin-top:12px}
+.idea{margin:0 0 10px;color:var(--mut);font-size:15px}
+.rec{font-family:"JetBrains Mono",monospace;font-size:13px;background:var(--kk);padding:8px 12px;border-radius:10px;overflow-x:auto;white-space:pre}
+.inputs{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-top:12px}
+.inputs label{display:flex;flex-direction:column;font-size:13px;font-weight:600;gap:4px;flex:1 1 180px}
+input,textarea,select{font:500 14px "JetBrains Mono",monospace;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+.btn{font:600 14px "Bricolage Grotesque",sans-serif;border:0;border-radius:10px;padding:9px 14px;background:var(--acc);color:#fff;cursor:pointer}
+.btn.alt{background:var(--kk);color:var(--ink);border:1.5px solid var(--line)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 8px}
+.ctl input[type=range]{width:120px;padding:0}
+.bar{height:6px;background:var(--kk);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+.msg{margin:12px 0;padding:12px 14px;border-left:5px solid var(--cur);background:var(--kk);border-radius:0 12px 12px 0;min-height:56px;font-size:15px}
+.scroll{overflow:auto;max-width:100%}
+table{border-collapse:separate;border-spacing:4px;margin:0 auto}
+th{font:700 12px "JetBrains Mono",monospace;color:var(--mut);padding:4px 6px;white-space:nowrap}
+td{font:700 15px "JetBrains Mono",monospace;min-width:46px;height:42px;text-align:center;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);transition:background .2s}
+td.k{background:var(--kk)}
+td{cursor:pointer}
+td.dep{background:var(--dep);color:var(--ink);border-color:#2a6b96}
+td.cur{background:var(--cur);color:var(--curt);border-color:var(--cur);transform:scale(1.08)}
+td.path{background:var(--path);color:var(--on);border-color:var(--path)}
+td.sel{outline:3px solid var(--acc);outline-offset:1px}
+.calc{margin-top:14px;border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+.calc .ct{background:var(--acc);color:#fff;font-weight:700;padding:8px 14px;font-size:14px}
+#calc{padding:12px 14px;font:500 14px "JetBrains Mono",monospace;white-space:pre-wrap;min-height:70px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mut);margin-top:10px}
+.legend b{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+.res{margin-top:12px;padding:14px;border-radius:12px;background:var(--acc);color:#fff;font-weight:600;white-space:pre-line;display:none}
+</style></head>
+<body><div class="wrap">
+<h1>Dynamic Programming Simulator</h1>
+<p class="sub">Watch each table fill itself, and see the calculation behind every box.</p>
+<div class="tabs" role="tablist" id="tabs"></div>
+<div class="panel">
+<p class="idea" id="idea"></p><div class="rec" id="rec"></div>
+<div class="inputs" id="inputs"></div>
+<div class="ctl">
+<button class="btn alt" id="prev">Back</button><button class="btn" id="play">Play</button><button class="btn alt" id="next">Step</button>
+<button class="btn alt" id="end">Skip to end</button><button class="btn alt" id="reset">Reset</button>
+<label style="font-size:13px;display:flex;gap:6px;align-items:center">Speed <input type="range" id="spd" min="1" max="10" value="6"></label>
+<span id="cnt" style="margin-left:auto;font-size:13px;color:var(--mut)"></span>
+</div>
+<div class="bar"><i id="pb"></i></div>
+<div class="msg" id="msg"></div>
+<div class="scroll"><table id="tbl"></table></div>
+<div class="calc"><div class="ct" id="calcT">Calculation for this box</div><div id="calc"></div></div>
+<div class="legend"><span>Tap any box to see how it was calculated.</span><span><b style="background:var(--cur)"></b>cell being computed</span><span><b style="background:var(--dep)"></b>cells it reads from</span><span><b style="background:var(--path)"></b>answer / traceback</span></div>
+<div class="res" id="res"></div>
+</div></div>
+<script>
+const INF=1e9,$=id=>document.getElementById(id);
+const r3=x=>Math.round(x*1000)/1000;
+const nums=s=>s.split(/[,\s]+/).filter(Boolean).map(Number);
+const cp=g=>g.map(r=>r.slice());
+const mk=(r,c)=>Array.from({length:r},()=>Array(c).fill(null));
+const S=(g,cur,dep,msg,extra)=>Object.assign({g:cp(g),cur:cur||null,dep:dep||[],msg,path:[]},extra||{});
+
+const A={
+mcm:{name:"Matrix Chain",idea:"Find the cheapest way to parenthesize a chain of matrices. Matrix Ai has size p[i-1] × p[i]. m[i][j] is the minimum number of scalar multiplications for Ai…Aj.",
+rec:"m[i][j] = min over i≤k<j of ( m[i][k] + m[k+1][j] + p[i-1]·p[k]·p[j] )\nm[i][i] = 0",
+in:[{id:"p",label:"Dimensions p (comma separated)",v:"30,35,15,5,10,20,25"}],
+build(v){const p=nums(v.p),n=p.length-1;if(n<2||n>8)throw"Enter 3 to 9 dimensions.";
+const m=mk(n,n),s=mk(n,n),st=[];
+for(let i=0;i<n;i++)m[i][i]=0;
+st.push(S(m,null,[],"Start: a single matrix needs 0 multiplications, so the diagonal is 0."));
+for(let l=2;l<=n;l++)for(let i=1;i<=n-l+1;i++){const j=i+l-1;let best=INF,bk=0;const c=[];
+for(let k=i;k<j;k++){const q=m[i-1][k-1]+m[k][j-1]+p[i-1]*p[k]*p[j];c.push(`k=${k}: ${m[i-1][k-1]}+${m[k][j-1]}+${p[i-1]}·${p[k]}·${p[j]} = ${q}`);if(q<best){best=q;bk=k}}
+m[i-1][j-1]=best;s[i-1][j-1]=bk;
+st.push(S(m,[i-1,j-1],[[i-1,bk-1],[bk,j-1]],`Chain length ${l}: m[${i}][${j}]\n${c.join("\n")}\nBest split k=${bk}, so m[${i}][${j}] = ${best}`));}
+const par=(i,j)=>i==j?"A"+i:"("+par(i,s[i-1][j-1])+" × "+par(s[i-1][j-1]+1,j)+")";
+const f=S(m,[0,n-1],[],"Done! The top-right cell holds the minimum cost for the whole chain.",{path:[[0,n-1]],res:`Minimum multiplications: ${m[0][n-1]}\nBest order: ${par(1,n)}`});st.push(f);
+return{rh:p.slice(0,n).map((_,i)=>"A"+(i+1)),ch:p.slice(0,n).map((_,i)=>"A"+(i+1)),st}}},
+
+lcs:{name:"Longest Common Subsequence",idea:"Find the longest sequence of characters that appears in both strings in the same order (not necessarily together). L[i][j] is the LCS length of the first i letters of X and first j letters of Y.",
+rec:"if X[i]=Y[j]: L[i][j] = L[i-1][j-1] + 1\nelse:         L[i][j] = max( L[i-1][j], L[i][j-1] )",
+in:[{id:"x",label:"String X",v:"ABCBDAB"},{id:"y",label:"String Y",v:"BDCABA"}],
+build(v){const X=v.x.trim().toUpperCase(),Y=v.y.trim().toUpperCase(),m=X.length,n=Y.length;if(!m||!n||m>9||n>9)throw"Use 1 to 9 letters in each string.";
+const g=mk(m+1,n+1),st=[];
+for(let i=0;i<=m;i++)g[i][0]=0;for(let j=0;j<=n;j++)g[0][j]=0;
+st.push(S(g,null,[],"Start: an empty string has LCS length 0, so row 0 and column 0 are 0."));
+for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+if(X[i-1]==Y[j-1]){g[i][j]=g[i-1][j-1]+1;st.push(S(g,[i,j],[[i-1,j-1]],`X[${i}]=${X[i-1]} and Y[${j}]=${Y[j-1]} match!\nL[${i}][${j}] = L[${i-1}][${j-1}] + 1 = ${g[i][j]}`))}
+else{const u=g[i-1][j],l=g[i][j-1];g[i][j]=Math.max(u,l);st.push(S(g,[i,j],[u>=l?[i-1,j]:[i,j-1]],`X[${i}]=${X[i-1]} and Y[${j}]=${Y[j-1]} differ.\nL[${i}][${j}] = max(up ${u}, left ${l}) = ${g[i][j]}`))}}
+let i=m,j=n,out="";const path=[];
+while(i>0&&j>0){path.push([i,j]);if(X[i-1]==Y[j-1]){out=X[i-1]+out;i--;j--}else if(g[i-1][j]>=g[i][j-1])i--;else j--}
+path.push([i,j]);
+st.push(S(g,null,[],"Traceback from the bottom-right: go diagonally on a match, otherwise move toward the larger neighbour.",{path,res:`LCS length: ${g[m][n]}\nLCS: ${out}`}));
+return{rh:["ε",...X],ch:["ε",...Y],st}}},
+
+knap:{name:"0/1 Knapsack",idea:"Pick items (each at most once) to maximise total value without exceeding the capacity. F[i][j] is the best value using the first i items with capacity j. Try “Memory function” mode: it fills only the cells it actually needs.",
+rec:"if w[i] > j: F[i][j] = F[i-1][j]\nelse:        F[i][j] = max( F[i-1][j], v[i] + F[i-1][j-w[i]] )",
+in:[{id:"w",label:"Weights",v:"2,1,3,2"},{id:"v",label:"Values",v:"12,10,20,15"},{id:"c",label:"Capacity",v:"5"},{id:"mode",label:"Method",sel:["Bottom-up table","Memory function (top-down)"]}],
+build(v){const w=nums(v.w),val=nums(v.v),W=+v.c,n=w.length;if(n<1||n!=val.length||!(W>=1&&W<=12)||n>7)throw"Give up to 7 items (equal counts of weights and values) and capacity 1 to 12.";
+const g=mk(n+1,W+1),st=[],mf=v.mode.startsWith("Memory");
+for(let i=0;i<=n;i++)g[i][0]=0;for(let j=0;j<=W;j++)g[0][j]=0;
+st.push(S(g,null,[],"Start: no items or no capacity means value 0."+(mf?" All other cells start empty and are computed only when needed.":"")));
+const cell=(i,j)=>{if(w[i-1]>j){g[i][j]=g[i-1][j];st.push(S(g,[i,j],[[i-1,j]],`Item ${i} (w=${w[i-1]}) is too heavy for capacity ${j}.\nF[${i}][${j}] = F[${i-1}][${j}] = ${g[i][j]}`))}
+else{const a=g[i-1][j],b=val[i-1]+g[i-1][j-w[i-1]];g[i][j]=Math.max(a,b);st.push(S(g,[i,j],[[i-1,j],[i-1,j-w[i-1]]],`Skip item ${i}: ${a}\nTake item ${i}: ${val[i-1]} + F[${i-1}][${j-w[i-1]}] = ${b}\nF[${i}][${j}] = ${g[i][j]}`))}};
+if(mf){const F=(i,j)=>{if(g[i][j]!==null)return;F(i-1,j);if(w[i-1]<=j)F(i-1,j-w[i-1]);cell(i,j)};F(n,W)}
+else for(let i=1;i<=n;i++)for(let j=1;j<=W;j++)cell(i,j);
+let j=W;const path=[[n,W]],pick=[];
+for(let i=n;i>0;i--){if(g[i][j]!=g[i-1][j]){pick.push(i);j-=w[i-1]}path.push([i-1,j])}
+let done=0;g.forEach(r=>r.forEach(x=>{if(x!==null)done++}));
+st.push(S(g,null,[],"Traceback: if F[i][j] differs from the cell above, item i was taken.",{path,res:`Best value: ${g[n][W]}\nItems taken: ${pick.reverse().join(", ")||"none"}\nCells filled: ${done} of ${(n+1)*(W+1)}`}));
+return{rh:["0",...w.map((x,i)=>`i=${i+1} (w${x},v${val[i]})`)],ch:Array.from({length:W+1},(_,j)=>j),st}}},
+
+obst:{name:"Optimal BST",idea:"Arrange sorted keys in a binary search tree so the expected search cost is smallest, given each key’s search probability. C[i][j] is the minimum expected cost for keys i…j.",
+rec:"C[i][j] = min over i≤k≤j of ( C[i][k-1] + C[k+1][j] ) + Σ p[i..j]\nC[i][i] = p[i],  C[i][i-1] = 0",
+in:[{id:"k",label:"Keys (sorted)",v:"A,B,C,D"},{id:"p",label:"Probabilities",v:"0.1,0.2,0.4,0.3"}],
+build(v){const K=v.k.split(/[,\s]+/).filter(Boolean),p=[0,...nums(v.p)],n=K.length;if(n<2||n>6||p.length!=n+1)throw"Give 2 to 6 keys with one probability each.";
+const g=mk(n+1,n+1),R=mk(n+2,n+2),st=[];
+for(let i=1;i<=n+1;i++)g[i-1][i-1]=0;
+for(let i=1;i<=n;i++){g[i-1][i]=p[i];R[i][i]=i}
+st.push(S(g,null,[],"Start: C[i][i-1] = 0 (empty tree) and C[i][i] = p[i] (one key, one comparison)."));
+for(let d=1;d<n;d++)for(let i=1;i<=n-d;i++){const j=i+d;let sum=0,best=INF,bk=0;const c=[];
+for(let t=i;t<=j;t++)sum+=p[t];
+for(let k=i;k<=j;k++){const q=r3(g[i-1][k-1]+g[k][j]);c.push(`root ${K[k-1]}: ${g[i-1][k-1]}+${g[k][j]} = ${q}`);if(q<best){best=q;bk=k}}
+g[i-1][j]=r3(best+sum);R[i][j]=bk;
+st.push(S(g,[i-1,j],[[i-1,bk-1],[bk,j]],`Keys ${K[i-1]}…${K[j-1]} (Σp = ${r3(sum)})\n${c.join("\n")}\nBest root ${K[bk-1]}: C[${i}][${j}] = ${r3(best)} + ${r3(sum)} = ${g[i-1][j]}`))}
+const tr=(i,j,pre,tag)=>{if(i>j)return"";const r=R[i][j];return `${pre}${tag}${K[r-1]}\n`+tr(i,r-1,pre+"    ","left: ")+tr(r+1,j,pre+"    ","right: ")};
+st.push(S(g,[0,n],[],"Done! The top-right cell is the minimum expected search cost.",{path:[[0,n]],res:`Minimum expected cost: ${g[0][n]}\nOptimal tree (root first):\n`+tr(1,n,"","root ")}));
+return{rh:Array.from({length:n+1},(_,i)=>"i="+(i+1)),ch:Array.from({length:n+1},(_,j)=>"j="+j),st}}},
+
+fw:{name:"Floyd–Warshall",idea:"Shortest distances between every pair of nodes. For each intermediate node k, ask: is going i → k → j shorter than the best known i → j? Rows and columns of k never change, so they are shaded and skipped.",
+rec:"D[i][j] = min( D[i][j], D[i][k] + D[k][j] )   for k = 1 … n",
+in:[{id:"m",label:"Distance matrix (one row per line, INF = no edge)",ta:"0,INF,3,INF\n2,0,INF,INF\nINF,7,0,1\n6,INF,INF,0"}],
+build(v){const D=v.m.trim().split(/\n/).map(r=>r.split(/[,\s]+/).filter(Boolean).map(x=>/inf|∞/i.test(x)?INF:+x)),n=D.length;
+if(n<2||n>6||D.some(r=>r.length!=n||r.some(isNaN)))throw"Enter a square matrix of 2 to 6 nodes.";
+const st=[],L=Array.from({length:n},(_,i)=>i+1),f=x=>x>=INF?"∞":x;
+st.push(S(D,null,[],"Start: the matrix holds the direct edge weights."));
+for(let k=0;k<n;k++){st.push(S(D,null,[],`Now allowing node ${k+1} as an intermediate stop.`,{k}));
+for(let i=0;i<n;i++)for(let j=0;j<n;j++){if(i==k||j==k||i==j)continue;const a=D[i][k]+D[k][j],o=D[i][j];
+let m=`k=${k+1}: via ${i+1} → ${k+1} → ${j+1} costs ${f(D[i][k])}+${f(D[k][j])} = ${a>=INF?"∞":a}; current ${f(o)}.\n`;
+if(a<o){D[i][j]=a;m+=`Shorter! D[${i+1}][${j+1}] = ${a}`}else m+="No improvement.";
+st.push(S(D,[i,j],[[i,k],[k,j]],m,{k}))}}
+st.push(S(D,null,[],"All intermediate nodes used. Every cell is now a shortest distance.",{res:"All-pairs shortest distances are shown in the final table.\n"+D.map((r,i)=>`${i+1}: `+r.map(f).join("  ")).join("\n")}));
+return{rh:L,ch:L,st,fmt:f}}}
+};
+
+let key="mcm",data=null,idx=0,timer=null,sel=null,selStep=-1;
+const tabs=$("tabs");
+Object.keys(A).forEach(k=>{const b=document.createElement("button");b.className="tab";b.textContent=A[k].name;b.setAttribute("role","tab");b.onclick=()=>pick(k);b.dataset.k=k;tabs.appendChild(b)});
+
+function pick(k){key=k;const a=A[k];
+tabs.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.dataset.k==k));
+$("idea").textContent=a.idea;$("rec").textContent=a.rec;
+const box=$("inputs");box.innerHTML="";
+a.in.forEach(f=>{const l=document.createElement("label");l.append(f.label);let e;
+if(f.sel){e=document.createElement("select");f.sel.forEach(o=>e.add(new Option(o)))}
+else if(f.ta){e=document.createElement("textarea");e.rows=5;e.value=f.ta}
+else{e=document.createElement("input");e.value=f.v}
+e.id="f_"+f.id;l.appendChild(e);box.appendChild(l)});
+const go=document.createElement("button");go.className="btn";go.textContent="Build simulation";go.onclick=build;box.appendChild(go);
+build()}
+
+function build(){stop();const v={};A[key].in.forEach(f=>v[f.id]=$("f_"+f.id).value);
+try{data=A[key].build(v);idx=0;draw()}catch(e){data=null;$("msg").textContent=typeof e=="string"?e:"Check your input values and try again.";$("tbl").innerHTML="";$("res").style.display="none";$("cnt").textContent=""}}
+
+function draw(){const st=data.st[idx],f=data.fmt||(x=>x),is=(a,r,c)=>a.some(p=>p[0]==r&&p[1]==c);
+let h="<tr><th></th>"+data.ch.map(c=>`<th>${c}</th>`).join("")+"</tr>";
+st.g.forEach((row,r)=>{h+=`<tr><th>${data.rh[r]}</th>`;row.forEach((v,c)=>{let cl="";
+if(st.k!==undefined&&(r==st.k||c==st.k))cl="k";
+if(is(st.dep,r,c))cl="dep";
+if(is(st.path,r,c))cl="path";
+if(st.cur&&st.cur[0]==r&&st.cur[1]==c)cl="cur";
+if(sel&&selStep==idx&&sel[0]==r&&sel[1]==c)cl+=" sel";
+h+=`<td class="${cl}" data-r="${r}" data-c="${c}">${v===null?"":f(v)}</td>`});h+="</tr>"});
+$("tbl").innerHTML=h;
+const cm={};for(let t=0;t<=idx;t++){const s=data.st[t];if(s.cur)cm[s.cur[0]+","+s.cur[1]]=s.msg}
+const shown=(sel&&selStep==idx)?sel:st.cur;
+if(shown){const val=st.g[shown[0]][shown[1]],nm=`${data.rh[shown[0]]} , ${data.ch[shown[1]]}`;
+$("calcT").textContent="Calculation for box ("+nm+")";
+$("calc").textContent=cm[shown[0]+","+shown[1]]||(val===null?"This box has not been computed yet.":"Base case or given value: "+f(val))}
+else{$("calcT").textContent="Calculation for this box";$("calc").textContent="Press Step or Play, or tap any box in the table."}
+$("msg").textContent=st.cur?`Computing box (${data.rh[st.cur[0]]} , ${data.ch[st.cur[1]]}). See the calculation below the table.`:st.msg;$("msg").style.whiteSpace="pre-line";
+$("cnt").textContent=`Step ${idx+1} / ${data.st.length}`;
+$("pb").style.width=(idx+1)/data.st.length*100+"%";
+const r=$("res");if(st.res){r.textContent=st.res;r.style.display="block"}else r.style.display="none"}
+
+function next(){if(!data)return;if(idx<data.st.length-1){idx++;draw()}else stop()}
+function stop(){clearInterval(timer);timer=null;$("play").textContent="Play"}
+function play(){if(!data)return;if(timer)return stop();if(idx>=data.st.length-1)idx=0;$("play").textContent="Pause";
+timer=setInterval(next,1400-$("spd").value*120)}
+$("tbl").onclick=e=>{const t=e.target.closest("td");if(!t||!data)return;stop();sel=[+t.dataset.r,+t.dataset.c];selStep=idx;draw()};
+$("next").onclick=()=>{stop();next()};
+$("prev").onclick=()=>{stop();if(data&&idx>0){idx--;draw()}};
+$("play").onclick=play;
+$("end").onclick=()=>{stop();if(data){idx=data.st.length-1;draw()}};
+$("reset").onclick=()=>{stop();if(data){idx=0;draw()}};
+$("spd").oninput=()=>{if(timer){stop();play()}};
+pick("mcm");
+</script></body></html>
